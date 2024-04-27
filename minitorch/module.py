@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 
 class Module:
@@ -31,25 +31,95 @@ class Module:
 
     def train(self) -> None:
         "Set the mode of this module and all descendent modules to `train`."
-        raise NotImplementedError("Need to include this file from past assignment.")
+        self.training = True
+
+        # Create a stack and add the current module to it
+        stack = list(self.modules())
+
+        # Loop until the stack is empty
+        while stack:
+            module = stack.pop()
+
+            # Set the module to training mode
+            module.training = True
+
+            # Add the descendant modules of the current module to the stack
+            stack.extend(module.modules())
 
     def eval(self) -> None:
         "Set the mode of this module and all descendent modules to `eval`."
-        raise NotImplementedError("Need to include this file from past assignment.")
+        self.training = False
 
-    def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
+        # Create a stack and add the current module to it
+        stack = list(self.modules())
+
+        # Loop until the stack is empty
+        while stack:
+            module = stack.pop()
+
+            # Set the module to evaluation mode
+            module.training = False
+
+            # Add the descendant modules of the current module to the stack
+            stack.extend(module.modules())
+
+    def named_parameters(self) -> List[Tuple[str, Parameter]]:
         """
-        Collect all the parameters of this module and its descendents.
-
+        Collect all the parameters of this module and its descendants.
+        Implemntation: Iterative, preorder traversal of the module tree.
 
         Returns:
             The name and `Parameter` of each ancestor parameter.
         """
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # Initialize an empty list to store named parameters
+        named_params: List[Tuple[str, Parameter]] = []
 
-    def parameters(self) -> Sequence[Parameter]:
+        # Initialize a stack list for DFS traversal
+        stack: List[Tuple[str, Module]] = []
+
+        # Add the root module with an empty name to start the traversal
+        stack.append(("", self))
+
+        while len(stack) != 0:  # While there are modules to traverse
+            name, tail = stack.pop()  # Pop a module from the stack
+
+            # Get the child modules and parameters of the current module
+            module_without_name = list(tail.__dict__["_modules"].items())
+            item_without_module_key = list(tail.__dict__["_parameters"].items())
+
+            # If the current module has no name (root module)
+            if name == "":
+                # Add child modules and parameters to the stack and named_params list
+                stack.extend(module_without_name)
+                named_params.extend(item_without_module_key)
+                continue
+
+            # If the current module has a name
+            # Add child modules with updated names (including parent module names) to the stack
+            stack.extend([(name + "." + key, val) for key, val in module_without_name])
+
+            # Add parameters with updated names (including parent module names) to the named_params list
+            named_params.extend(
+                [(name + "." + key, val) for key, val in item_without_module_key]
+            )
+
+        return named_params  # Return the list of named parameters
+
+    def parameters(self) -> List[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
-        raise NotImplementedError("Need to include this file from past assignment.")
+        params: List[Parameter] = []
+        stack: List[Module] = [self]  # Initialize a stack with the root module
+
+        while stack:  # While there are modules to explore
+            current_module = stack.pop()
+
+            # Collect parameters of the current module
+            params.extend(current_module._parameters.values())
+
+            # Add child modules to the stack for exploration
+            stack.extend(current_module._modules.values())
+
+        return params
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
@@ -115,9 +185,9 @@ class Module:
 
 class Parameter:
     """
-    A Parameter is a special container stored in a `Module`.
+    A Parameter is a special container stored in a :class:`Module`.
 
-    It is designed to hold a `Variable`, but we allow it to hold
+    It is designed to hold a :class:`Variable`, but we allow it to hold
     any value for testing.
     """
 

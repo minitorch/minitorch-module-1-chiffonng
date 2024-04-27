@@ -150,6 +150,7 @@ class ModuleRun(minitorch.Module):
 @pytest.mark.task0_4
 @pytest.mark.xfail
 def test_module_fail_forward() -> None:
+    """Expected failure test"""
     mod = minitorch.Module()
     mod()
 
