@@ -116,7 +116,7 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
                 stack.append(parent)
 
         reverse_order.append(current)
-    reverse_order.reverse()  # return None
+    reverse_order.reverse()
 
     return reverse_order
 
