@@ -47,5 +47,6 @@ try:
     print(f"Finished moving {len(files_to_move)} files")
 except Exception as e:
     print(
-        "Something went wrong! please check if the source and destination folders are present in same folder"
+        "Please check if the source and destination folders are present in same folder. Error: ",
+        e,
     )

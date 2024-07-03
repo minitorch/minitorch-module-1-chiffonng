@@ -54,7 +54,9 @@ class ScalarFunction:
                 raw_vals.append(v.data)
             else:
                 scalars.append(minitorch.scalar.Scalar(v))
-                raw_vals.append(v)
+
+                # Fix back=None
+                raw_vals.append(float(v))
 
         # Create the context.
         ctx = Context(False)
@@ -143,14 +145,15 @@ class Sigmoid(ScalarFunction):
 
     @staticmethod
     def forward(ctx: Context, a: float) -> float:
-        ctx.save_for_backward(a)
-        return operators.sigmoid(a)
+        sig = operators.sigmoid(a)
+        ctx.save_for_backward(sig)
+        return sig
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         """Derivative of sigmoid is sigmoid * (1 - sigmoid)"""
-        (a,) = ctx.saved_values
-        return operators.sigmoid(a) * (1 - operators.sigmoid(a)) * d_output
+        (sig,) = ctx.saved_values
+        return operators.mul(operators.mul(sig, 1.0 - sig), d_output)
 
 
 class ReLU(ScalarFunction):
@@ -173,14 +176,15 @@ class Exp(ScalarFunction):
 
     @staticmethod
     def forward(ctx: Context, a: float) -> float:
-        ctx.save_for_backward(a)
-        return operators.exp(a)
+        exp = operators.exp(a)
+        ctx.save_for_backward(exp)
+        return exp
 
     @staticmethod
     def backward(ctx: Context, d_output: float) -> float:
         """Derivative of exp is exp, multiplied by d_output."""
-        (a,) = ctx.saved_values
-        return operators.mul(operators.exp(a), d_output)
+        (exp,) = ctx.saved_values
+        return operators.mul(exp, d_output)
 
 
 class LT(ScalarFunction):

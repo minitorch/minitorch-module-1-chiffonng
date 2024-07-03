@@ -65,7 +65,7 @@ class Scalar:
     def __init__(
         self,
         v: float,
-        back: ScalarHistory = ScalarHistory(),
+        back: Optional[ScalarHistory] = ScalarHistory(),
         name: Optional[str] = None,
     ):
         global _var_count
