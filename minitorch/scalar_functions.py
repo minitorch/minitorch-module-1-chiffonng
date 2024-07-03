@@ -108,8 +108,8 @@ class Mul(ScalarFunction):
     @staticmethod
     def backward(ctx: Context, d_output: float) -> Tuple[float, float]:
         """The derivative of a * b with respect to a and b is b and a, multiplied by the output derivative."""
-        a, b = ctx.saved_values
-        return operators.mul(a, d_output), operators.mul(b, d_output)
+        (a, b) = ctx.saved_values
+        return operators.mul(b, d_output), operators.mul(a, d_output)
 
 
 class Inv(ScalarFunction):
@@ -153,7 +153,7 @@ class Sigmoid(ScalarFunction):
     def backward(ctx: Context, d_output: float) -> float:
         """Derivative of sigmoid is sigmoid * (1 - sigmoid)"""
         (sig,) = ctx.saved_values
-        return operators.mul(operators.mul(sig, 1.0 - sig), d_output)
+        return operators.mul(sig, 1.0 - sig) * d_output
 
 
 class ReLU(ScalarFunction):
